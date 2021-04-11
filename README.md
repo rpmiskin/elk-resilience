@@ -117,7 +117,7 @@ If the logstash instance were to die all this queued messages are lost.
 ## Possible Solution
 
 Using the output isolator pattern should allow each output to buffer some data
-even when the pipeline is blocked. To try this out examine `p1.logstash.conf`.
+even when the pipeline is blocked. To try this out examine `input-pipeline.logstash.conf`.
 The contents should currently look like:
 
 ```
