@@ -1,4 +1,4 @@
-# ELK Resiliance Example
+# ELK Resilience Example
 
 This repository contains a demo of an problems observed within a
 running system. Two instances of the system were deployed in different
