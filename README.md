@@ -1,8 +1,10 @@
 # ELK Resiliance Example
 
-Demo of an operational scenario. We run two instances of our system in different regions, to
-try and maintain centralised logging we route all log messages from each cluster to elastic
-instances in _both_ regions. e.g.
+This repository contains a demo of an problems observed within a
+running system. Two instances of the system were deployed in different
+regions for resilience and to maintain centralised logging all log
+messages from each cluster are routed to to elastic instances in
+**both** regions. e.g.
 
 ```
 output {
@@ -15,8 +17,9 @@ output {
 }
 ```
 
-It was discovered that (as documented) if the first output fails, then the pipeline stops. This
-means that, as far as resilience goes, once `elastic1` is down there is _no_ logging.
+It was discovered that (as documented) if the first output fails, then
+the pipeline stops. This means that, as far as resilience goes, once
+`elastic1` is down there is **no logging**.
 
 One solution to this appears to be the [output isolator pattern](https://www.elastic.co/guide/en/logstash/current/pipeline-to-pipeline.html#output-isolator-pattern).
 
@@ -116,8 +119,11 @@ If the logstash instance were to die all this queued messages are lost.
 
 ## Possible Solution
 
-Using the output isolator pattern should allow each output to buffer some data
-even when the pipeline is blocked. To try this out examine `input-pipeline.logstash.conf`.
+Using the output isolator pattern should allow each output to buffer
+some data even when the pipeline is blocked. (**Note** This requires logtash >= 7.0 and that you use a `pipelines.yml` file.)
+
+To try this out examine
+`input-pipeline.logstash.conf`.
 The contents should currently look like:
 
 ```
@@ -159,7 +165,7 @@ output {
 }
 ```
 
-`es1` and `es2` are defined
+`es1` is defined in `es1.logstash.cong` and `es2` is defined in `es2.logstash.conf`.
 
 Now restart logstash by running:
 
@@ -176,3 +182,19 @@ curl http://localhost:31311/stopped/elastic1/but/with/pipelines
 ```
 
 Once `elastic1` is restarted the messages appears there.
+
+# Notes on persistent queues
+
+The configuration in `pipelines.yml` makes the queues for sending on to
+each elastic instance persitent, rather than just stored in memory. Note
+that the data is not backd up in a distributed manner, so while it will
+cope with logstash being restarted it will not survive a full system
+failure. Further notes, including the default configuration, can be
+found in the [logstash documentation](https://www.elastic.co/guide/en/logstash/current/persistent-queues.html#persistent-queues).
+
+A key consideration is that once the persitent queue is blocked then the
+input queue will also become blocked and we are back to the position of
+data not making it into either elastic instance. Sizing of persistent
+queues should be sufficient to handle expected outages. Reconfiguring
+the pipelines may still be required for unexpectedly long outages - but
+at least the isolation provides a grace period rather than all logging immedately ceasing.
