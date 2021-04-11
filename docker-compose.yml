@@ -1,0 +1,51 @@
+version: "3.9"
+# Example that uses logstash to write to two separate
+# elasticsearch instances.
+# Used to check what happens in failure scenarios
+
+services:
+  elastic1:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.12.0
+    ports:
+      - 9201:9200
+      - 9301:9300
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+
+  kibana1:
+    image: docker.elastic.co/kibana/kibana:7.12.0
+    environment:
+      SERVER_NAME: "kibana1"
+      SERVER_HOST: "kibana1"
+      ELASTICSEARCH_HOSTS: '["http://elastic1:9200"]'
+      MONITORING_ENABLED: "false"
+    ports:
+      - 5601:5601
+
+  elastic2:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.12.0
+    ports:
+      - 9202:9200
+      - 9302:9300
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+
+  kibana2:
+    image: docker.elastic.co/kibana/kibana:7.12.0
+    environment:
+      SERVER_NAME: "kibana2"
+      SERVER_HOST: "kibana2"
+      ELASTICSEARCH_HOSTS: '["http://elastic2:9200"]'
+      MONITORING_ENABLED: "false"
+    ports:
+      - 5602:5601
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash-oss:7.12.0
+    volumes:
+      - ./logstash/pipelines.yml/:/usr/share/logstash/config/pipelines.yml
+      - ./logstash/pipelines/:/etc/pipelines/
+    ports:
+      - 31311:31311

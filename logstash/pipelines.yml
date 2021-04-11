@@ -1,0 +1,13 @@
+- pipeline.id: input-pipeline
+  path.config: "/etc/pipelines/p1.logstash.conf"
+  pipeline.workers: 3
+- pipeline.id: es1
+  queue.type: persisted
+  config.string: |
+    input { pipeline { address => es1 } }
+    output { elasticsearch {hosts => "http://elastic1:9200" } }
+- pipeline.id: es2
+  queue.type: persisted
+  config.string: |
+    input { pipeline { address => es2 } }
+    output { elasticsearch {hosts => "http://elastic2:9200" } }
